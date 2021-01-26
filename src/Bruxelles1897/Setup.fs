@@ -148,10 +148,13 @@ let setupNextRound
   fun logSetupEvent gameState ->
     
     // prepare cards for noveau deck
-    let (drawnArtworks, remainingArtworks) = drawRandomCardsFromDeck gameState.ArtworkDeck.Deck 3
-    let (drawnMaterials, remainingMaterials) = drawRandomCardsFromDeck gameState.MaterialDeck.Deck 3
-    let (drawnNobles, remainingNobles) = drawRandomCardsFromDeck gameState.NobleDeck.Deck 3
-    let (drawnHouses, remainingHouses) = drawRandomCardsFromDeck gameState.HouseDeck.Deck 3
+    let (drawnArtworks, artworkDeck) = drawRandomCardsFromDeckWithReplenish gameState.ArtworkDeck 3
+    let (drawnMaterials, materialDeck) = drawRandomCardsFromDeckWithReplenish gameState.MaterialDeck 3
+    let (drawnNobles, nobleDeck) = drawRandomCardsFromDeckWithReplenish gameState.NobleDeck 3
+    let (drawnHouses, houseDeck) = drawRandomCardsFromDeckWithReplenish gameState.HouseDeck 3
+
+    printfn "%A" drawnArtworks
+    printfn "%A" artworkDeck
 
     // create the noveau deck
     let noveauDeck = 
@@ -175,29 +178,29 @@ let setupNextRound
     // populate the noveau area from the deck and keep track of unused cards
     let artNoveauArea, unusedCards = createNoveauColumns noveauDeck seedBonusDeck rowCounts 0 List.empty 
 
-    // return unused cards from noveau deck to respective discards
-    let gameStateWithDiscard = 
-      List.fold (
-        fun s -> function
-        | Creation x -> { gameState with ArtworkDeck = discardFromDeck gameState.ArtworkDeck x}
-        | Supply x -> { gameState with MaterialDeck = discardFromDeck gameState.MaterialDeck x}
-        | Construction x -> { gameState with HouseDeck = discardFromDeck gameState.HouseDeck x}
-        | Influence x -> { gameState with NobleDeck = discardFromDeck gameState.NobleDeck x}
-        | _ -> s) gameState unusedCards
-
     // algud, create new game state
     let newGameState = 
       { 
-        gameStateWithDiscard with
+        gameState with
           Round = gameState.Round + 1
           ExhibitionPlayer = None
           ArtNoveauArea = artNoveauArea
-          ArtworkDeck = {Deck = remainingArtworks; Discard = gameState.ArtworkDeck.Discard }
-          MaterialDeck = {Deck = remainingMaterials; Discard = gameState.MaterialDeck.Discard }
-          NobleDeck = { Deck = remainingNobles; Discard = gameState.NobleDeck.Discard }
-          HouseDeck = { Deck = remainingHouses; Discard = gameState.HouseDeck.Discard }
+          ArtworkDeck = artworkDeck
+          MaterialDeck = materialDeck
+          HouseDeck = houseDeck
+          NobleDeck = nobleDeck
       }
 
-    logSetupEvent <| Instrumentation.GameStateUpdatedEvent newGameState
+    // return unused cards from noveau deck to respective discards
+    let newGameStateWithDiscard = 
+      List.fold (
+        fun s -> function
+        | Creation x -> { s with ArtworkDeck = discardCard s.ArtworkDeck x}
+        | Supply x -> { s with MaterialDeck = discardCard s.MaterialDeck x}
+        | Construction x -> { s with HouseDeck = discardCard s.HouseDeck x}
+        | Influence x -> { s with NobleDeck = discardCard s.NobleDeck x}
+        | _ -> s) newGameState unusedCards
 
-    newGameState
+    logSetupEvent <| Instrumentation.GameStateUpdatedEvent newGameStateWithDiscard
+
+    newGameStateWithDiscard

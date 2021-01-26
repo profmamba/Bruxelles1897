@@ -122,15 +122,15 @@ type Player = {
 }
 
 type GameState = {
+  PlayerCount: PlayerCount
+  Round: int
   ArtNoveauArea: ArtNoveauArea
   BruxellesArea: BruxellesArea
+  Prison: Architect list
   ArtworkDeck: ArtworkDeck
   MaterialDeck: MaterialDeck
   NobleDeck: NobleDeck
   HouseDeck: HouseDeck 
-  Prison: Architect list
-  Round: int
-  PlayerCount: PlayerCount
   Players: Player list
   PlayerOrder: PlayerColor list
   CurrentPlayer: PlayerColor
