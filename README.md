@@ -6,9 +6,9 @@ Currently only prints out a setup of the game for 2 players.
 
 [x] Model Domain  
 [x] Setup  
-[ ] Game rules an actions
-[ ] Automation for bots
-[ ] Support for 3 and 4 players
+[ ] Game rules an actions  
+[ ] Automation for [The Nobles bots](https://boardgamegeek.com/thread/2550244/2020-solomode-nobles)  
+[ ] Support for 3 and 4 players  
 [ ] Machine learning
 
 Please support the [actual game](https://www.geekattitudegames.com/en/produit/bruxelles-1897/).
