@@ -20,4 +20,5 @@ let drawRandomCardsFromDeck deck count =
 
   let drawCards = drawIndexes |> pick deck
   let remainingCards = remainingIndexes |> pick deck
+  
   (drawCards, remainingCards)

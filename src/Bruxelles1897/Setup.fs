@@ -7,6 +7,7 @@ open Domain
 module Instrumentation =
   type SetupInstrumentationEvent = 
   | GameStateUpdatedEvent of GameState
+  | ArtNoveauDeckCreated of ArtNoveauAction list
 
 let seedArtworkDeck = 
   List.empty
@@ -145,23 +146,25 @@ let setupNextRound
   -> GameState
   -> GameState = 
   fun logSetupEvent gameState ->
-
+    
     // prepare cards for noveau deck
-    let (artworkDeck, artworks) = drawRandomCardsFromDeck gameState.ArtworkDeck.Deck 3
-    let (materialDeck, materials) = drawRandomCardsFromDeck gameState.MaterialDeck.Deck 3
-    let (nobleDeck, nobles) = drawRandomCardsFromDeck gameState.NobleDeck.Deck 3
-    let (houseDeck, houses) = drawRandomCardsFromDeck gameState.HouseDeck.Deck 3
+    let (drawnArtworks, remainingArtworks) = drawRandomCardsFromDeck gameState.ArtworkDeck.Deck 3
+    let (drawnMaterials, remainingMaterials) = drawRandomCardsFromDeck gameState.MaterialDeck.Deck 3
+    let (drawnNobles, remainingNobles) = drawRandomCardsFromDeck gameState.NobleDeck.Deck 3
+    let (drawnHouses, remainingHouses) = drawRandomCardsFromDeck gameState.HouseDeck.Deck 3
 
     // create the noveau deck
     let noveauDeck = 
       List.empty
-      |> addCardsToNoveauDeck artworks (fun i -> Creation i)
-      |> addCardsToNoveauDeck materials (fun i -> Supply i)
-      |> addCardsToNoveauDeck nobles (fun i -> Influence i)
-      |> addCardsToNoveauDeck houses (fun i -> Construction i)
+      |> addCardsToNoveauDeck drawnArtworks (fun i -> Creation i)
+      |> addCardsToNoveauDeck drawnMaterials (fun i -> Supply i)
+      |> addCardsToNoveauDeck drawnNobles (fun i -> Influence i)
+      |> addCardsToNoveauDeck drawnHouses (fun i -> Construction i)
       |> addToDeck (Sale BEF) 3
       |> addToDeck (Exhibition) 1  
-  
+    
+    logSetupEvent <| Instrumentation.ArtNoveauDeckCreated noveauDeck
+
     // determine the number of cards per column based on number of players
     let rowCounts = 
       match gameState.PlayerCount with
@@ -189,10 +192,10 @@ let setupNextRound
           Round = gameState.Round + 1
           ExhibitionPlayer = None
           ArtNoveauArea = artNoveauArea
-          ArtworkDeck = {Deck = artworkDeck; Discard = gameState.ArtworkDeck.Discard }
-          MaterialDeck = {Deck = materialDeck; Discard = gameState.MaterialDeck.Discard }
-          NobleDeck = { Deck = nobleDeck; Discard = gameState.NobleDeck.Discard }
-          HouseDeck = { Deck = houseDeck; Discard = gameState.HouseDeck.Discard }
+          ArtworkDeck = {Deck = remainingArtworks; Discard = gameState.ArtworkDeck.Discard }
+          MaterialDeck = {Deck = remainingMaterials; Discard = gameState.MaterialDeck.Discard }
+          NobleDeck = { Deck = remainingNobles; Discard = gameState.NobleDeck.Discard }
+          HouseDeck = { Deck = remainingHouses; Discard = gameState.HouseDeck.Discard }
       }
 
     logSetupEvent <| Instrumentation.GameStateUpdatedEvent newGameState
